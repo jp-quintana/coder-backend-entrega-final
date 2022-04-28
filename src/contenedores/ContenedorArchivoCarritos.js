@@ -12,17 +12,15 @@ class ContenedorArchivoCarritos {
 
         let date = new Date().toLocaleString();
 
-        let carrito = {
-          id: carritos.length + 1,
-          timestamp: date,
-          productos: obj
-        }
+        obj.id = carritos.length + 1,
+        obj.timestamp = date,
+        obj.productos = []
 
-        carritos.push(carrito)
+        carritos.push(obj)
 
         await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(carritos))
 
-        return carrito.id;
+        return obj.id;
 
       } catch (error) {
         console.log(error);
@@ -32,14 +30,14 @@ class ContenedorArchivoCarritos {
     async listar(id) {
       try {
         const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
-        const items = JSON.parse(contenido)
+        const carritos = JSON.parse(contenido)
 
-        const check = items.filter(item => item.id === id)
+        const carrito = carritos.find(carrito => carrito.id === id)
 
-        if (check.length === 0) {
+        if (!carrito) {
           console.log(null);
         } else {
-          return check;
+          return carrito.productos;
         }
 
       } catch (error) {
@@ -50,73 +48,40 @@ class ContenedorArchivoCarritos {
     async listarAll() {
       try {
         const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
-        const items = JSON.parse(contenido)
+        const carritos = JSON.parse(contenido)
 
-        return items;
-
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    async guardar(obj) {
-      try {
-        const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
-        const items = JSON.parse(contenido)
-
-        obj.id = items.length + 1;
-        items.push(obj)
-
-        await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(items))
-
-        console.log(obj.id);
+        return carritos;
 
       } catch (error) {
         console.log(error);
       }
     }
 
-    async actualizar(elem, id) {
+    async guardar(id, producto) {
       try {
         const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
-        const items = JSON.parse(contenido)
+        const carritos = JSON.parse(contenido)
 
-        const itemACambiar = items.find(item => item.id === id)
+        const carrito = carritos.find(carrito => carrito.id === id)
 
-        if (!itemACambiar) {
-          console.log({ error: 'producto no encontrado'})
+        const carritoIndice = carritos.indexOf(carrito)
+
+        // if (carritos[carritoIndice].productos.indexOf(producto)) {
+        // }
+
+        const prubaEnCarrito = carritos[carritoIndice].productos.find(item => item.id === producto.id)
+
+        if (prubaEnCarrito) {
+          return;
         }
 
-        const indice = items.indexOf(itemACambiar)
+        carritos[carritoIndice].productos.push(producto)
 
-        items[indice] = elem
-        items[indice].id = id
+        await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(carritos))
 
-        await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(items))
       } catch (error) {
         console.log(error);
       }
-    }
-
-    async borrar(id) {
-      const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
-      const items = JSON.parse(contenido)
-
-      const item = items.find(item => item.id === id)
-
-      if (!item) {
-        throw new Error(`No existe el producto con el id ${id}`)
-      }
-
-      const indice = items.indexOf(item)
-
-      items.splice(indice, 1)
-
-      for (let i = 0; i < items.length; i++) {
-        items[i].id = i + 1;
-      }
-
-      await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(items))
     }
 
     async borrarProductoCarrito(id, id_prod) {
@@ -131,18 +96,18 @@ class ContenedorArchivoCarritos {
 
       const indiceCarrito = carritos.indexOf(carrito)
 
-      const producto = carritos.indiceCarrito.productos.find(producto => producto.id === id_prod)
+      const producto = carritos[indiceCarrito].productos.find(producto => producto.id === id_prod)
 
       if (!producto) {
         throw new Error(`No existe el producto con el id ${id_prod} dentro del carrito con id ${id}`)
       }
 
-      indiceProducto = carritos.indiceCarrito.productos.indexOf(producto)
+      const indiceProducto = carritos[indiceCarrito].productos.indexOf(producto)
 
-      carritos.indiceCarrito.productos.splice(indiceProducto, 1)
+      carritos[indiceCarrito].productos.splice(indiceProducto, 1)
 
-      for (let i = 0; i < carritos.indiceCarrito.productos.length; i++) {
-        carritos.indiceCarrito.productos[i].id = i + 1;
+      for (let i = 0; i < carritos[indiceCarrito].productos.length; i++) {
+        carritos[indiceCarrito].productos[i].id = i + 1;
       }
 
       await fs.promises.writeFile(`${this.ruta}`, JSON.stringify(carritos))

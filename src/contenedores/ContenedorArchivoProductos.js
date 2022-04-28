@@ -10,12 +10,12 @@ class ContenedorArchivoProductos {
         const contenido = await fs.promises.readFile(`${this.ruta}`, 'utf-8');
         const items = JSON.parse(contenido)
 
-        const check = items.filter(item => item.id === id)
+        const item = items.find(item => item.id === id)
 
-        if (check.length === 0) {
+        if (!item) {
           console.log(null);
         } else {
-          return check;
+          return item;
         }
 
       } catch (error) {
